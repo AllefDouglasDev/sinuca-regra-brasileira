@@ -2,11 +2,8 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { useEffect } from "react";
-import { useConfig } from "../hooks/useConfig";
 
 export default function Page() {
-  const { isFocusModeEnabled } = useConfig();
-
   useEffect(() => {
     ScreenOrientation.unlockAsync();
   }, []);
@@ -21,7 +18,7 @@ export default function Page() {
           gap: 10,
         }}
       >
-        <Link push href={isFocusModeEnabled ? "/duo-focus" : "/duo"} asChild>
+        <Link push href={"/duo-focus"} asChild>
           <Pressable
             style={{
               backgroundColor: "#0e6aae",
@@ -34,7 +31,7 @@ export default function Page() {
             </Text>
           </Pressable>
         </Link>
-        <Link push href={isFocusModeEnabled ? "/trio-focus" : "/trio"} asChild>
+        <Link push href={"/trio-focus"} asChild>
           <Pressable
             style={{
               backgroundColor: "#04635f",
@@ -44,22 +41,6 @@ export default function Page() {
           >
             <Text style={{ fontSize: 20, fontWeight: "bold", color: "white" }}>
               Três jogadores
-            </Text>
-          </Pressable>
-        </Link>
-        <Link push href="/config" asChild>
-          <Pressable
-            style={{
-              padding: 20,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 10,
-              borderColor: "#cecece",
-              borderWidth: 1,
-            }}
-          >
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-              Configurações
             </Text>
           </Pressable>
         </Link>

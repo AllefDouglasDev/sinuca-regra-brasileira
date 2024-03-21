@@ -12,8 +12,6 @@ export function AllBallsList({ allBalls, availableBalls, onPressBall }) {
         flexDirection: "row",
         flexWrap: "wrap",
         justifyContent: "center",
-        gap: 10,
-        marginBottom: 10,
       }}
     >
       {allBalls.map((ball) => (
@@ -25,7 +23,7 @@ export function AllBallsList({ allBalls, availableBalls, onPressBall }) {
             opacity: isBallAvailable(ball) ? 1 : 0.3,
           }}
         >
-          <Ball ball={ball} />
+          <Ball ball={ball} size={115} />
         </TouchableOpacity>
       ))}
     </View>

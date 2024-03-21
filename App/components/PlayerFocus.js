@@ -5,6 +5,7 @@ export const PlayerFocus = ({
   player,
   onFallPress,
   onPassTurnPress,
+  onLongPress,
 }) => {
   return (
     <View style={{ flex: 1, gap: 10 }}>
@@ -17,8 +18,10 @@ export const PlayerFocus = ({
           alignItems: "center",
           justifyContent: "center",
           opacity: currentPlayer.id === player.id ? 1 : 0.3,
+          position: "relative",
         }}
         onPress={() => onPassTurnPress(player.id)}
+        onLongPress={onLongPress}
       >
         <Text
           style={{
@@ -31,12 +34,25 @@ export const PlayerFocus = ({
         >
           {player.points}
         </Text>
+        <Text
+          style={{
+            top: 2,
+            left: 5,
+            position: "absolute",
+            fontWeight: "bold",
+            color: player.bgColor,
+            fontSize: 18,
+          }}
+          numberOfLines={1}
+        >
+          {player.name}
+        </Text>
       </Pressable>
       <Pressable
         style={{
           borderRadius: 5,
           backgroundColor: player.bgColor,
-          padding: 5,
+          paddingVertical: 10,
         }}
         onPress={() => onFallPress(player.id)}
       >
