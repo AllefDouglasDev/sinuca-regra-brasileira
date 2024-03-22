@@ -1,6 +1,15 @@
+import { useKeepAwake } from "expo-keep-awake";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "expo-status-bar";
-import { Alert, View, Text, Pressable, ScrollView, StyleSheet, Platform } from "react-native";
+import {
+  Alert,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import { Game } from "../components/game";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AllBallsList } from "../components/AllBallsList";
@@ -14,6 +23,7 @@ import { NameForm } from "../components/NameForm";
 const game = new Game();
 
 export default function TrioFocus() {
+  useKeepAwake();
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [isNameFormOpen, setIsNameFormOpen] = useState({
     isOpen: false,

@@ -1,7 +1,15 @@
+import { useKeepAwake } from "expo-keep-awake";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Alert, View, Text, StyleSheet, Pressable, Platform } from "react-native";
+import {
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Platform,
+} from "react-native";
 import { Game } from "../components/game";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AllBallsList } from "../components/AllBallsList";
@@ -16,6 +24,7 @@ import { NameForm } from "../components/NameForm";
 const game = new Game();
 
 export default function DuoFocus() {
+  useKeepAwake();
   const [keepGameRunning, setKeepGameRunning] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const setHistory = useHistoryStore((store) => store.setHistory);
@@ -260,18 +269,12 @@ const Result = ({ diff, playerWinning, onUndo, onReset, onHistory }) => {
             <MaterialIcons name="undo" size={24} color="#484d60" />
           </Text>
         </Pressable>
-        <Pressable
-          onPress={onReset}
-          style={styles.iconButton}
-        >
+        <Pressable onPress={onReset} style={styles.iconButton}>
           <Text style={{ color: "white" }}>
             <FontAwesome name="undo" size={24} color="#484d60" />
           </Text>
         </Pressable>
-        <Pressable
-          onPress={onHistory}
-          style={styles.iconButton}
-        >
+        <Pressable onPress={onHistory} style={styles.iconButton}>
           <Text style={{ color: "white", fontSize: 25 }}>
             <FontAwesome6 name="newspaper" size={24} color="#484d60" />
           </Text>
