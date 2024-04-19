@@ -8,3 +8,6 @@ Tacos do Tesouro
 eas build --platform android --local --profile preview
 ```
 
+# Tasks
+
+- [ ] Adicionar float button para ações de reiniciar, voltar jogada e historico
