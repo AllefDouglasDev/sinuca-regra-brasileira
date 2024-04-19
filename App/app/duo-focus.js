@@ -1,7 +1,7 @@
 import { useKeepAwake } from "expo-keep-awake";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar } from "../components/StatusBar";
 import {
   Alert,
   View,
@@ -195,8 +195,8 @@ export default function DuoFocus() {
   }, [loadPlayerNames]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#e8e7d6" }}>
-      <StatusBar style="auto" />
+    <View className="flex-1 bg-teal-600">
+      <StatusBar />
       <NameForm
         isOpen={isNameFormOpen.isOpen}
         onClose={() => setIsNameFormOpen({ isOpen: false })}

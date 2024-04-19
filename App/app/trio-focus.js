@@ -1,6 +1,6 @@
 import { useKeepAwake } from "expo-keep-awake";
 import * as ScreenOrientation from "expo-screen-orientation";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar } from "../components/StatusBar";
 import {
   Alert,
   View,
@@ -142,7 +142,7 @@ export default function TrioFocus() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#e8e7d6" }}>
-      <StatusBar style="auto" />
+      <StatusBar />
       <NameForm
         isOpen={isNameFormOpen.isOpen}
         onClose={() => setIsNameFormOpen({ isOpen: false })}
