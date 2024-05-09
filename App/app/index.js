@@ -13,13 +13,13 @@ export default function Page() {
     <View className="flex-1 bg-teal-600">
       <StatusBar />
       <View className="flex-1 items-center justify-center">
-        <Link push href={"/duo-focus"} asChild>
-          <Pressable className="p-5 rounded-xl bg-[#0e6aae] mb-3">
+        <Link push href="/duo" asChild>
+          <Pressable className="p-5 rounded-xl bg-ball-blue mb-3">
             <Text className="text-white text-xl font-bold">Dois jogadores</Text>
           </Pressable>
         </Link>
-        <Link push href={"/trio-focus"} asChild>
-          <Pressable className="p-5 rounded-xl bg-[#04635f]">
+        <Link push href="/trio" asChild>
+          <Pressable className="p-5 rounded-xl bg-ball-green">
             <Text className="text-white text-xl font-bold">Três jogadores</Text>
           </Pressable>
         </Link>

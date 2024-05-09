@@ -1,71 +1,50 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Alert, View, ScrollView, Platform } from "react-native";
+import { useKeepAwake } from "expo-keep-awake";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { StatusBar } from "../components/StatusBar";
+import {
+  Alert,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import { Game } from "../components/game";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AllBallsList } from "../components/AllBallsList";
 import { Separator } from "../components/Separator";
-import { BreakBallsList } from "../components/BreakBallsList";
-import { CurrentBall } from "../components/CurrentBall";
-import { CurrentPlayer } from "../components/CurrentPlayer";
-import { Player } from "../components/Player";
-import { Header } from "../components/Header";
+import { PlayerFocus } from "../components/PlayerFocus";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uppercaseFirstLetter } from "../utils/string";
 import { NameForm } from "../components/NameForm";
-import { PlayerPoints } from "../components/PlayerPoints";
 
 const game = new Game();
 
-export default function Trio() {
+export default function TrioFocus() {
+  useKeepAwake();
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [isNameFormOpen, setIsNameFormOpen] = useState({
     isOpen: false,
     playerId: undefined,
   });
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
-
-  const {
-    player1,
-    player2,
-    player3,
-    playerWinning,
-    currentPlayer,
-    allBalls,
-    availableBalls,
-    breakBalls,
-    lowerBallInTable,
-    gameState,
-  } = useMemo(() => {
-    const { diff, playerWinning } = game.getPointsDiff();
-    return {
-      gameState: game.state,
-      currentBall: game.getCurrentBallInTable(),
-      lowerBallInTable: game.getLowerBallInTable(),
-      allBalls: game.getAllBalls(),
-      currentPlayer: game.getCurrentPlayer(),
-      availableBalls: game.getPossibleBalls(),
-      player1: game.player1,
-      player2: game.player2,
-      player3: game.player3,
-      diff,
-      playerWinning,
-      breakBalls: game.break,
-    };
-  }, [lastUpdate]);
-
-  const loadPlayerNames = useCallback(async () => {
-    const player1Name = await AsyncStorage.getItem("trio-player-1");
-    const player2Name = await AsyncStorage.getItem("trio-player-2");
-    const player3Name = await AsyncStorage.getItem("trio-player-3");
-    game.changePlayerName(1, player1Name || "Jogador 1");
-    game.changePlayerName(2, player2Name || "Jogador 2");
-    game.changePlayerName(3, player3Name || "Jogador 3");
-    setLastUpdate(Date.now());
-  }, []);
 
   useEffect(() => {
-    loadPlayerNames();
-  }, [loadPlayerNames]);
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+  }, []);
+
+  const { player1, player2, player3, currentPlayer, allBalls, availableBalls } =
+    useMemo(() => {
+      return {
+        allBalls: game.getAllBalls(),
+        currentPlayer: game.getCurrentPlayer(),
+        availableBalls: game.getPossibleBalls(),
+        player1: game.player1,
+        player2: game.player2,
+        player3: game.player3,
+      };
+    }, [lastUpdate]);
 
   const handlePassTurn = (playerId) => {
     if (currentPlayer.id === playerId) {
@@ -77,6 +56,9 @@ export default function Trio() {
 
   const handleFall = (playerId) => {
     game.fall(playerId);
+    if (currentPlayer.id !== playerId) {
+      game.passTurn(playerId);
+    }
     setLastUpdate(Date.now());
   };
 
@@ -117,23 +99,6 @@ export default function Trio() {
     ]);
   };
 
-  const handleBack = () => {
-    Alert.alert("Atenção", "Voltar para a tela inicial?", [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: () => {
-          game.reset();
-          setLastUpdate(Date.now());
-          router.back();
-        },
-      },
-    ]);
-  };
-
   const handleLongPressPlayer = (playerId) => {
     if (Platform.OS === "ios") {
       Alert.prompt("Nome", "Defina o nome do jogador:", [
@@ -161,94 +126,110 @@ export default function Trio() {
     setIsNameFormOpen({ isOpen: false });
   };
 
-  const playerDiff = useCallback((playerId, leftId, rightId) => {
-    const leftPlayer = game.getPlayerById(leftId);
-    const rightPlayer = game.getPlayerById(rightId);
-    const leftDiff = game.comparePlayersDiff(playerId, leftId);
-    const rightDiff = game.comparePlayersDiff(playerId, rightId);
-    return {
-      leftDiff: {
-        color: leftPlayer.bgColor,
-        value: leftDiff.playerWinning.id === playerId ? leftDiff.diff : 0,
-      },
-      rightDiff: {
-        color: rightPlayer.bgColor,
-        value: rightDiff.playerWinning.id === playerId ? rightDiff.diff : 0,
-      },
-    };
+  const loadPlayerNames = useCallback(async () => {
+    const player1Name = await AsyncStorage.getItem("trio-player-1");
+    const player2Name = await AsyncStorage.getItem("trio-player-2");
+    const player3Name = await AsyncStorage.getItem("trio-player-3");
+    game.changePlayerName(1, player1Name || "Jogador 1");
+    game.changePlayerName(2, player2Name || "Jogador 2");
+    game.changePlayerName(3, player3Name || "Jogador 3");
+    setLastUpdate(Date.now());
   }, []);
+
+  useEffect(() => {
+    loadPlayerNames();
+  }, [loadPlayerNames]);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#e8e7d6" }}>
-      <StatusBar style="auto" />
+      <StatusBar />
       <NameForm
         isOpen={isNameFormOpen.isOpen}
         onClose={() => setIsNameFormOpen({ isOpen: false })}
         onConfirm={(name) => changePlayerName(isNameFormOpen.playerId, name)}
       />
-      <Header onReset={handleReset} onUndo={handleUndo} onBack={handleBack} />
       <Separator marginTop={0} marginBottom={0} />
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            padding: 10,
-          }}
+      <View
+        style={{
+          flex: 1,
+          gap: 10,
+          flexDirection: "row",
+          height: "100%",
+          padding: 10,
+        }}
+      >
+        <PlayerFocus
+          currentPlayer={currentPlayer}
+          player={player1}
+          onFallPress={handleFall}
+          onPassTurnPress={handlePassTurn}
+          onLongPress={() => handleLongPressPlayer(player1.id)}
+        />
+        <PlayerFocus
+          currentPlayer={currentPlayer}
+          player={player2}
+          onFallPress={handleFall}
+          onPassTurnPress={handlePassTurn}
+          onLongPress={() => handleLongPressPlayer(player2.id)}
+        />
+        <PlayerFocus
+          currentPlayer={currentPlayer}
+          player={player3}
+          onFallPress={handleFall}
+          onPassTurnPress={handlePassTurn}
+          onLongPress={() => handleLongPressPlayer(player3.id)}
+        />
+      </View>
+      <Separator marginTop={0} />
+      <View>
+        <ScrollView
+          contentContainerStyle={{ height: 115 }}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          horizontal
         >
-          <PlayerPoints players={[player1, player2, player3]} />
           <View
             style={{
               width: "100%",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              flexDirection: "row",
               gap: 10,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingHorizontal: 10,
             }}
           >
-            <Player
-              player={player1}
-              playerWinning={playerWinning}
-              playing={currentPlayer.id === player1.id}
-              showSingleDiff={false}
-              {...playerDiff(player1.id, player2.id, player3.id)}
-              onPress={() => handlePassTurn(player1.id)}
-              onFall={() => handleFall(player1.id)}
-              onLongPress={() => handleLongPressPlayer(player1.id)}
+            <AllBallsList
+              allBalls={allBalls}
+              availableBalls={availableBalls}
+              onPressBall={handlePressBall}
             />
-            <Player
-              player={player2}
-              playerWinning={playerWinning}
-              playing={currentPlayer.id === player2.id}
-              showSingleDiff={false}
-              {...playerDiff(player2.id, player1.id, player3.id)}
-              onPress={() => handlePassTurn(player2.id)}
-              onFall={() => handleFall(player2.id)}
-              onLongPress={() => handleLongPressPlayer(player2.id)}
-            />
-            <Player
-              player={player3}
-              playerWinning={playerWinning}
-              playing={currentPlayer.id === player3.id}
-              showSingleDiff={false}
-              {...playerDiff(player3.id, player1.id, player2.id)}
-              onPress={() => handlePassTurn(player3.id)}
-              onFall={() => handleFall(player3.id)}
-              onLongPress={() => handleLongPressPlayer(player3.id)}
-            />
+            <View style={{ gap: 10 }}>
+              <Pressable onPress={handleUndo} style={styles.iconButton}>
+                <Text style={{ color: "white", fontSize: 25 }}>
+                  <MaterialIcons name="undo" size={24} color="#484d60" />
+                </Text>
+              </Pressable>
+              <Pressable onPress={handleReset} style={styles.iconButton}>
+                <Text style={{ color: "white" }}>
+                  <FontAwesome name="undo" size={24} color="#484d60" />
+                </Text>
+              </Pressable>
+            </View>
           </View>
-          <Separator />
-          <CurrentPlayer currentPlayer={currentPlayer} />
-          <CurrentBall lowerBall={lowerBallInTable} gameState={gameState} />
-          <BreakBallsList breakBalls={breakBalls} />
-        </View>
-      </ScrollView>
-      <Separator marginTop={0} />
-      <AllBallsList
-        allBalls={allBalls}
-        availableBalls={availableBalls}
-        onPressBall={handlePressBall}
-      />
+        </ScrollView>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  iconButton: {
+    flex: 1,
+    width: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#484d60",
+  },
+});

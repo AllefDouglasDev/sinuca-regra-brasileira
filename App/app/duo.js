@@ -1,28 +1,50 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useKeepAwake } from "expo-keep-awake";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Alert, View, ScrollView, Platform } from "react-native";
+import { StatusBar } from "../components/StatusBar";
+import {
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Platform,
+} from "react-native";
 import { Game } from "../components/game";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AllBallsList } from "../components/AllBallsList";
 import { Separator } from "../components/Separator";
-import { BreakBallsList } from "../components/BreakBallsList";
-import { CurrentBall } from "../components/CurrentBall";
-import { CurrentPlayer } from "../components/CurrentPlayer";
-import { Player } from "../components/Player";
-import { Header } from "../components/Header";
+import { PlayerFocus } from "../components/PlayerFocus";
+import { MaterialIcons, FontAwesome, FontAwesome6 } from "@expo/vector-icons";
+import { useHistoryStore } from "../store/history";
 import { uppercaseFirstLetter } from "../utils/string";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NameForm } from "../components/NameForm";
-import { PlayerPoints } from "../components/PlayerPoints";
 
 const game = new Game();
 
-export default function Duo() {
+export default function DuoFocus() {
+  useKeepAwake();
+  const [keepGameRunning, setKeepGameRunning] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const setHistory = useHistoryStore((store) => store.setHistory);
+  const setCurrentBreak = useHistoryStore((store) => store.setCurrentBreak);
   const [isNameFormOpen, setIsNameFormOpen] = useState({
     isOpen: false,
     playerId: undefined,
   });
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
+
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+  }, []);
+
+  useEffect(() => {
+    setHistory(history);
+  }, [lastUpdate, history]);
+
+  useEffect(() => {
+    setCurrentBreak(breakBalls);
+  }, [lastUpdate, breakBalls]);
 
   const {
     player1,
@@ -32,9 +54,8 @@ export default function Duo() {
     allBalls,
     availableBalls,
     diff,
+    history,
     breakBalls,
-    lowerBallInTable,
-    gameState,
   } = useMemo(() => {
     const { diff, playerWinning } = game.getPointsDiff();
     return {
@@ -48,20 +69,9 @@ export default function Duo() {
       diff,
       playerWinning,
       breakBalls: game.break,
+      history: game.history,
     };
   }, [lastUpdate]);
-
-  const loadPlayerNames = useCallback(async () => {
-    const player1Name = await AsyncStorage.getItem("duo-player-1");
-    const player2Name = await AsyncStorage.getItem("duo-player-2");
-    game.changePlayerName(1, player1Name || "Jogador 1");
-    game.changePlayerName(2, player2Name || "Jogador 2");
-    setLastUpdate(Date.now());
-  }, []);
-
-  useEffect(() => {
-    loadPlayerNames();
-  }, [loadPlayerNames]);
 
   const handlePassTurn = (playerId) => {
     if (currentPlayer.id === playerId) {
@@ -77,11 +87,35 @@ export default function Duo() {
       game.passTurn(playerId);
     }
     setLastUpdate(Date.now());
+    checkWin();
   };
 
   const handlePressBall = (ball) => {
     game.addBallToBreak(ball.points);
     setLastUpdate(Date.now());
+    checkWin();
+  };
+
+  const checkWin = () => {
+    if (game.checkWin() && !keepGameRunning) {
+      Alert.alert("Jogo matematicamente finalizado.", "Reiniciar o jogo?", [
+        {
+          text: "Continuar Jogando",
+          style: "cancel",
+          onPress: () => {
+            setKeepGameRunning(true);
+          },
+        },
+        {
+          text: "Reiniciar",
+          onPress: () => {
+            game.reset();
+            setLastUpdate(Date.now());
+            setKeepGameRunning(false);
+          },
+        },
+      ]);
+    }
   };
 
   const handleReset = () => {
@@ -95,6 +129,7 @@ export default function Duo() {
         onPress: () => {
           game.reset();
           setLastUpdate(Date.now());
+          setKeepGameRunning(false);
         },
       },
     ]);
@@ -116,21 +151,8 @@ export default function Duo() {
     ]);
   };
 
-  const handleBack = () => {
-    Alert.alert("Atenção", "Voltar para a tela inicial?", [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: () => {
-          game.reset();
-          setLastUpdate(Date.now());
-          router.back();
-        },
-      },
-    ]);
+  const handleHistory = () => {
+    router.push({ pathname: "/history" });
   };
 
   const handleLongPressPlayer = (playerId) => {
@@ -160,55 +182,58 @@ export default function Duo() {
     setIsNameFormOpen({ isOpen: false });
   };
 
+  const loadPlayerNames = useCallback(async () => {
+    const player1Name = await AsyncStorage.getItem("duo-player-1");
+    const player2Name = await AsyncStorage.getItem("duo-player-2");
+    game.changePlayerName(1, player1Name || "Jogador 1");
+    game.changePlayerName(2, player2Name || "Jogador 2");
+    setLastUpdate(Date.now());
+  }, []);
+
+  useEffect(() => {
+    loadPlayerNames();
+  }, [loadPlayerNames]);
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#e8e7d6" }}>
-      <StatusBar style="auto" />
+    <View className="flex-1 bg-teal-600">
+      <StatusBar />
       <NameForm
         isOpen={isNameFormOpen.isOpen}
         onClose={() => setIsNameFormOpen({ isOpen: false })}
         onConfirm={(name) => changePlayerName(isNameFormOpen.playerId, name)}
       />
-      <Header onReset={handleReset} onUndo={handleUndo} onBack={handleBack} />
       <Separator marginTop={0} marginBottom={0} />
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View
-          style={{
-            flex: 1,
-            alignCenter: "center",
-            padding: 10,
-          }}
-        >
-          <PlayerPoints
-            players={[player1, player2]}
-            diff={diff}
-            playerWinning={playerWinning}
-          />
-          <View style={{ width: "100%", flexDirection: "row", gap: 10 }}>
-            <Player
-              player={player1}
-              playerWinning={playerWinning}
-              diff={diff}
-              playing={currentPlayer.id === player1.id}
-              onPress={() => handlePassTurn(player1.id)}
-              onFall={() => handleFall(player1.id)}
-              onLongPress={() => handleLongPressPlayer(player1.id)}
-            />
-            <Player
-              player={player2}
-              playerWinning={playerWinning}
-              playing={currentPlayer.id === player2.id}
-              diff={diff}
-              onPress={() => handlePassTurn(player2.id)}
-              onFall={() => handleFall(player2.id)}
-              onLongPress={() => handleLongPressPlayer(player2.id)}
-            />
-          </View>
-          <Separator />
-          <CurrentPlayer currentPlayer={currentPlayer} />
-          <CurrentBall lowerBall={lowerBallInTable} gameState={gameState} />
-          <BreakBallsList breakBalls={breakBalls} />
-        </View>
-      </ScrollView>
+      <View
+        style={{
+          flex: 1,
+          gap: 10,
+          flexDirection: "row",
+          height: "100%",
+          padding: 10,
+        }}
+      >
+        <PlayerFocus
+          currentPlayer={currentPlayer}
+          player={player1}
+          onFallPress={handleFall}
+          onPassTurnPress={handlePassTurn}
+          onLongPress={() => handleLongPressPlayer(player1.id)}
+        />
+        <Result
+          diff={diff}
+          playerWinning={playerWinning}
+          onUndo={handleUndo}
+          onReset={handleReset}
+          onHistory={handleHistory}
+        />
+        <PlayerFocus
+          currentPlayer={currentPlayer}
+          player={player2}
+          onFallPress={handleFall}
+          onPassTurnPress={handlePassTurn}
+          onLongPress={() => handleLongPressPlayer(player2.id)}
+        />
+      </View>
       <Separator marginTop={0} />
       <AllBallsList
         allBalls={allBalls}
@@ -218,3 +243,76 @@ export default function Duo() {
     </View>
   );
 }
+
+const Result = ({ diff, playerWinning, onUndo, onReset, onHistory }) => {
+  return (
+    <View style={{ flex: 1, height: "100%", gap: 10 }}>
+      <View
+        style={{
+          ...styles.pointsContainer,
+          backgroundColor: diff > 0 ? playerWinning.bgColor : "white",
+        }}
+      >
+        <Text
+          style={{
+            ...styles.pointsText,
+            color: diff > 0 ? "white" : "black",
+          }}
+        >
+          {diff > 0 ? diff : "="}
+        </Text>
+      </View>
+
+      <View style={{ flexDirection: "row", gap: 10 }}>
+        <Pressable onPress={onUndo} style={styles.iconButton}>
+          <Text style={{ color: "white", fontSize: 25 }}>
+            <MaterialIcons name="undo" size={24} color="#484d60" />
+          </Text>
+        </Pressable>
+        <Pressable onPress={onReset} style={styles.iconButton}>
+          <Text style={{ color: "white" }}>
+            <FontAwesome name="undo" size={24} color="#484d60" />
+          </Text>
+        </Pressable>
+        <Pressable onPress={onHistory} style={styles.iconButton}>
+          <Text style={{ color: "white", fontSize: 25 }}>
+            <FontAwesome6 name="newspaper" size={24} color="#484d60" />
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  pointsContainer: {
+    flex: 1,
+    height: "100%",
+    backgroundColor: "white",
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pointsText: {
+    padding: 0,
+    fontSize: 130,
+    lineHeight: 147,
+    fontWeight: "bold",
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+  },
+  iconButton: {
+    flex: 1,
+    height: 46,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#484d60",
+  },
+});
