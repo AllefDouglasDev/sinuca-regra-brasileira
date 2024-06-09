@@ -2,11 +2,7 @@ import { useKeepAwake } from "expo-keep-awake";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { router } from "expo-router";
 import { StatusBar } from "../components/StatusBar";
-import {
-  Alert,
-  View,
-  Platform,
-} from "react-native";
+import { Alert, View, Platform, ScrollView } from "react-native";
 import { Game } from "../components/game";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AllBallsList } from "../components/AllBallsList";
@@ -23,6 +19,7 @@ const game = new Game();
 export default function Duo() {
   useKeepAwake();
   const [keepGameRunning, setKeepGameRunning] = useState(false);
+  const [height, setHeigh] = useState(70);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const setHistory = useHistoryStore((store) => store.setHistory);
   const setCurrentBreak = useHistoryStore((store) => store.setCurrentBreak);
@@ -94,7 +91,7 @@ export default function Duo() {
   };
 
   const checkWin = () => {
-    if (!game.checkWin() || keepGameRunning) return
+    if (!game.checkWin() || keepGameRunning) return;
     Alert.alert("Jogo matematicamente finalizado.", "Reiniciar o jogo?", [
       {
         text: "Continuar Jogando",
@@ -191,43 +188,49 @@ export default function Duo() {
   }, [loadPlayerNames]);
 
   return (
-    <View className="flex-1 bg-teal-600">
-      <StatusBar />
-      <NameForm
-        isOpen={isNameFormOpen.isOpen}
-        onClose={() => setIsNameFormOpen({ isOpen: false })}
-        onConfirm={(name) => changePlayerName(isNameFormOpen.playerId, name)}
-      />
-      <Separator marginTop={0} marginBottom={0} />
-      <View className="flex-1 gap-2.5 flex-row h-full p-2.5">
-        <PlayerFocus
-          currentPlayer={currentPlayer}
-          player={player1}
-          onFallPress={handleFall}
-          onPassTurnPress={handlePassTurn}
-          onLongPress={() => handleLongPressPlayer(player1.id)}
+    <ScrollView
+      className="bg-teal-600 flex-1"
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="flex-1 bg-teal-600">
+        <StatusBar />
+        <NameForm
+          isOpen={isNameFormOpen.isOpen}
+          onClose={() => setIsNameFormOpen({ isOpen: false })}
+          onConfirm={(name) => changePlayerName(isNameFormOpen.playerId, name)}
         />
-        <DuoResult
-          diff={diff}
-          playerWinning={playerWinning}
-          onUndo={handleUndo}
-          onReset={handleReset}
-          onHistory={handleHistory}
-        />
-        <PlayerFocus
-          currentPlayer={currentPlayer}
-          player={player2}
-          onFallPress={handleFall}
-          onPassTurnPress={handlePassTurn}
-          onLongPress={() => handleLongPressPlayer(player2.id)}
+        <Separator marginTop={0} marginBottom={0} />
+        <View className="flex-row p-2.5 flex-1">
+          <PlayerFocus
+            currentPlayer={currentPlayer}
+            player={player1}
+            onFallPress={handleFall}
+            onPassTurnPress={handlePassTurn}
+            onLongPress={() => handleLongPressPlayer(player1.id)}
+          />
+          <DuoResult
+            diff={diff}
+            playerWinning={playerWinning}
+            onUndo={handleUndo}
+            onReset={handleReset}
+            onHistory={handleHistory}
+          />
+          <PlayerFocus
+            currentPlayer={currentPlayer}
+            player={player2}
+            onFallPress={handleFall}
+            onPassTurnPress={handlePassTurn}
+            onLongPress={() => handleLongPressPlayer(player2.id)}
+          />
+        </View>
+        <Separator marginTop={0} />
+        <AllBallsList
+          allBalls={allBalls}
+          availableBalls={availableBalls}
+          onPressBall={handlePressBall}
         />
       </View>
-      <Separator marginTop={0} />
-      <AllBallsList
-        allBalls={allBalls}
-        availableBalls={availableBalls}
-        onPressBall={handlePressBall}
-      />
-    </View>
+    </ScrollView>
   );
 }

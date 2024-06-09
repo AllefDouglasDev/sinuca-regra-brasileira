@@ -9,9 +9,9 @@ export const DuoResult = ({
   onHistory,
 }) => {
   return (
-    <View className="flex-1 h-full gap-2.5">
+    <View className="flex-1 h-full">
       <View
-        className="flex-1 h-full bg-white rounded-md items-center justify-center"
+        className="flex-1 h-full bg-white rounded-md items-center justify-center mb-2"
         style={{ backgroundColor: diff > 0 ? playerWinning.bgColor : "white" }}
       >
         <Text
@@ -29,25 +29,19 @@ export const DuoResult = ({
           className="flex-1 h-[46px] items-center justify-center rounded-md border border-zinc-800"
           onPress={onUndo}
         >
-          <Text className="text-white text-[25px]">
-            <MaterialIcons name="undo" size={24} color="#484d60" />
-          </Text>
+          <MaterialIcons name="undo" size={24} color="black" />
         </Pressable>
         <Pressable
           className="flex-1 h-[46px] items-center justify-center rounded-md border border-zinc-800"
           onPress={onReset}
         >
-          <Text className="text-white">
-            <FontAwesome name="undo" size={24} color="#484d60" />
-          </Text>
+          <FontAwesome name="undo" size={24} color="black" />
         </Pressable>
         <Pressable
           className="flex-1 h-[46px] items-center justify-center rounded-md border border-zinc-800"
           onPress={onHistory}
         >
-          <Text className="text-white text-[25px]">
-            <FontAwesome6 name="newspaper" size={24} color="#484d60" />
-          </Text>
+          <FontAwesome6 name="newspaper" size={24} color="black" />
         </Pressable>
       </View>
     </View>

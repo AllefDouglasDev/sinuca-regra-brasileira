@@ -1,15 +1,7 @@
 import { useKeepAwake } from "expo-keep-awake";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "../components/StatusBar";
-import {
-  Alert,
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Platform,
-} from "react-native";
+import { Alert, View, Pressable, ScrollView, Platform } from "react-native";
 import { Game } from "../components/game";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AllBallsList } from "../components/AllBallsList";
@@ -141,95 +133,74 @@ export default function TrioFocus() {
   }, [loadPlayerNames]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#e8e7d6" }}>
-      <StatusBar />
-      <NameForm
-        isOpen={isNameFormOpen.isOpen}
-        onClose={() => setIsNameFormOpen({ isOpen: false })}
-        onConfirm={(name) => changePlayerName(isNameFormOpen.playerId, name)}
-      />
-      <Separator marginTop={0} marginBottom={0} />
-      <View
-        style={{
-          flex: 1,
-          gap: 10,
-          flexDirection: "row",
-          height: "100%",
-          padding: 10,
-        }}
-      >
-        <PlayerFocus
-          currentPlayer={currentPlayer}
-          player={player1}
-          onFallPress={handleFall}
-          onPassTurnPress={handlePassTurn}
-          onLongPress={() => handleLongPressPlayer(player1.id)}
+    <ScrollView
+      className="bg-teal-600 flex-1"
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="flex-1 bg-teal-600">
+        <StatusBar />
+        <NameForm
+          isOpen={isNameFormOpen.isOpen}
+          onClose={() => setIsNameFormOpen({ isOpen: false })}
+          onConfirm={(name) => changePlayerName(isNameFormOpen.playerId, name)}
         />
-        <PlayerFocus
-          currentPlayer={currentPlayer}
-          player={player2}
-          onFallPress={handleFall}
-          onPassTurnPress={handlePassTurn}
-          onLongPress={() => handleLongPressPlayer(player2.id)}
-        />
-        <PlayerFocus
-          currentPlayer={currentPlayer}
-          player={player3}
-          onFallPress={handleFall}
-          onPassTurnPress={handlePassTurn}
-          onLongPress={() => handleLongPressPlayer(player3.id)}
-        />
-      </View>
-      <Separator marginTop={0} />
-      <View>
-        <ScrollView
-          contentContainerStyle={{ height: 115 }}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          horizontal
-        >
-          <View
-            style={{
-              width: "100%",
-              gap: 10,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingHorizontal: 10,
-            }}
+        <Separator marginTop={0} marginBottom={0} />
+        <View className="flex-row p-2.5 flex-1">
+          <PlayerFocus
+            currentPlayer={currentPlayer}
+            player={player1}
+            onFallPress={handleFall}
+            onPassTurnPress={handlePassTurn}
+            onLongPress={() => handleLongPressPlayer(player1.id)}
+          />
+          <PlayerFocus
+            currentPlayer={currentPlayer}
+            player={player2}
+            onFallPress={handleFall}
+            onPassTurnPress={handlePassTurn}
+            onLongPress={() => handleLongPressPlayer(player2.id)}
+          />
+          <PlayerFocus
+            currentPlayer={currentPlayer}
+            player={player3}
+            onFallPress={handleFall}
+            onPassTurnPress={handlePassTurn}
+            onLongPress={() => handleLongPressPlayer(player3.id)}
+          />
+        </View>
+        <Separator marginTop={0} />
+        <View className="flex-1">
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            horizontal
           >
-            <AllBallsList
-              allBalls={allBalls}
-              availableBalls={availableBalls}
-              onPressBall={handlePressBall}
-            />
-            <View style={{ gap: 10 }}>
-              <Pressable onPress={handleUndo} style={styles.iconButton}>
-                <Text style={{ color: "white", fontSize: 25 }}>
-                  <MaterialIcons name="undo" size={24} color="#484d60" />
-                </Text>
-              </Pressable>
-              <Pressable onPress={handleReset} style={styles.iconButton}>
-                <Text style={{ color: "white" }}>
-                  <FontAwesome name="undo" size={24} color="#484d60" />
-                </Text>
-              </Pressable>
+            <View className="w-full flex-row">
+              <AllBallsList
+                allBalls={allBalls}
+                availableBalls={availableBalls}
+                onPressBall={handlePressBall}
+              />
+              <View className="mt-2 mr-4">
+                <Pressable
+                  className="items-center justify-center border border-zinc-800 rounded p-2 mb-1 min-w-[40px]"
+                  onPress={handleUndo}
+                >
+                  <MaterialIcons name="undo" size={24} color="black" />
+                </Pressable>
+                <Pressable
+                  className="items-center justify-center border border-zinc-800 rounded p-2 mb-1 min-w-[40px]"
+                  onPress={handleReset}
+                >
+                  <FontAwesome name="undo" size={24} color="black" />
+                </Pressable>
+              </View>
             </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  iconButton: {
-    flex: 1,
-    width: 50,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#484d60",
-  },
-});

@@ -8,7 +8,7 @@ export const PlayerFocus = ({
   onLongPress,
 }) => {
   return (
-    <View style={{ flex: 1, gap: 10 }}>
+    <View className="flex-1 gap-2 px-2">
       <Pressable
         style={{
           flex: 1,
